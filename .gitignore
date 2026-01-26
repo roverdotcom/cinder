@@ -1,10 +1,26 @@
-# Python-generated files
 __pycache__/
-*.py[oc]
 build/
 dist/
-wheels/
-*.egg-info
+*.egg-info/
+.pytest_cache/
 
-# Virtual environments
+# pyenv
+.python-version
+
+# Environments
+.env
 .venv
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# JetBrains
+.idea/
+
+/coverage.xml
+/.coverage
+
+# Testing/temporary directories
+test_generated/
