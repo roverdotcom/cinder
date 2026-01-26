@@ -1,4 +1,4 @@
-.PHONY: regenerate-client clean-client regenerate-models test test-verbose test-coverage test-watch help
+.PHONY: regenerate-client clean-client regenerate-models test test-verbose test-coverage test-watch requirements help
 
 help:
 	@echo "Available targets:"
@@ -13,6 +13,9 @@ help:
 	@echo "  test-verbose            - Run tests with verbose output"
 	@echo "  test-coverage           - Run tests with coverage report"
 	@echo "  test-watch              - Run tests in watch mode (re-run on file changes)"
+	@echo ""
+	@echo "Dependencies:"
+	@echo "  requirements            - Generate requirements.txt from uv.lock"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  clean-models            - Remove all generated code"
@@ -56,3 +59,11 @@ test-watch:
 	@echo "Running tests in watch mode..."
 	@echo "Press Ctrl+C to stop"
 	uv run pytest-watch
+
+requirements:
+	@echo "Generating requirements.txt from uv.lock..."
+	uv export --format requirements-txt --no-dev > requirements.txt
+	@echo "✓ requirements.txt generated!"
+	@echo ""
+	@echo "To include dev dependencies, run:"
+	@echo "  uv export --format requirements-txt > requirements-dev.txt"
