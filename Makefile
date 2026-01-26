@@ -1,4 +1,4 @@
-.PHONY: regenerate-client clean-client regenerate-models help
+.PHONY: regenerate-client clean-client regenerate-models test test-verbose test-coverage test-watch help
 
 help:
 	@echo "Available targets:"
@@ -7,6 +7,12 @@ help:
 	@echo "  regenerate-models       - Generate Pydantic models only (1 file, clean names)"
 	@echo "                            → Creates: src/cinder/generated/models.py"
 	@echo "                            → Includes: Just Pydantic models"
+	@echo ""
+	@echo "Testing:"
+	@echo "  test                    - Run all tests"
+	@echo "  test-verbose            - Run tests with verbose output"
+	@echo "  test-coverage           - Run tests with coverage report"
+	@echo "  test-watch              - Run tests in watch mode (re-run on file changes)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  clean-models            - Remove all generated code"
@@ -29,3 +35,24 @@ clean-models:
 	@echo "Removing generated code..."
 	rm -rf src/cinder/generated
 	@echo "✓ Generated code removed!"
+
+test:
+	@echo "Running tests..."
+	uv run pytest
+	@echo "✓ Tests completed!"
+
+test-verbose:
+	@echo "Running tests with verbose output..."
+	uv run pytest -v
+
+test-coverage:
+	@echo "Running tests with coverage report..."
+	uv run pytest --cov=cinder --cov-report=term-missing --cov-report=html
+	@echo ""
+	@echo "✓ Coverage report generated!"
+	@echo "  View HTML report: open htmlcov/index.html"
+
+test-watch:
+	@echo "Running tests in watch mode..."
+	@echo "Press Ctrl+C to stop"
+	uv run pytest-watch

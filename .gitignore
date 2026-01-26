@@ -21,6 +21,7 @@ dmypy.json
 
 /coverage.xml
 /.coverage
+/htmlcov/
 
 # Testing/temporary directories
 test_generated/
