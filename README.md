@@ -71,7 +71,43 @@ CINDER_API_TOKEN = os.environ.get("CINDER_API_TOKEN")
 
 ## Usage
 
-### Basic Usage
+### Synchronous Usage (Recommended for Django)
+
+```python
+from cinder import SyncCinderClient
+
+# Basic usage
+with SyncCinderClient(
+    base_url="https://rover-staging.cinderapp.com/",
+    token="XXXXXXXXX"
+) as client:
+    # Get graph schema
+    schema = client.get_graph_schema()
+    print(f"Found {len(schema.entity_schemas)} entity schemas")
+
+    # List decisions
+    decisions = client.list_decisions(limit=10)
+    print(f"Found {decisions.total} decisions")
+
+    # Get specific decision
+    decision = client.get_decision("decision-id")
+    print(f"Decision: {decision.id}")
+```
+
+### Synchronous with Environment Variables
+
+```python
+from cinder import get_sync_client
+
+# Reads from CINDER_API_BASE_URL and CINDER_API_TOKEN env vars
+client = get_sync_client()
+
+with client:
+    schema = client.get_graph_schema()
+    print(schema.model_dump_json(indent=2))
+```
+
+### Async Usage
 
 ```python
 import asyncio
@@ -89,26 +125,6 @@ async def main():
         # List decisions
         decisions = await client.list_decisions(limit=10)
         print(f"Found {decisions.total} decisions")
-
-        # Get specific decision
-        decision = await client.get_decision("decision-id")
-        print(f"Decision: {decision.id}")
-
-asyncio.run(main())
-```
-
-### Using Environment Variables
-
-```python
-from cinder import get_client
-
-async def main():
-    # Reads from CINDER_API_BASE_URL and CINDER_API_TOKEN env vars
-    client = get_client()
-
-    async with client:
-        schema = await client.get_graph_schema()
-        print(schema.model_dump_json(indent=2))
 
 asyncio.run(main())
 ```
