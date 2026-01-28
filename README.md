@@ -71,7 +71,17 @@ CINDER_API_TOKEN = os.environ.get("CINDER_API_TOKEN")
 
 ## Usage
 
-### Synchronous Usage (Recommended for Django)
+**Note**: Sync vs Async
+
+For its first few steps into the real world, this library offers both sync
+and async variants. Some of the sync code is the LLM-generated version of
+the other, and vice versa, as the code is quite boilerplate-ish.
+
+However, as we move forward with this, keep in mind that some day one of
+them might be dropped (and probably should, to reduce overhead), while the
+other will get more updates and new features.
+
+### Synchronous Usage
 
 ```python
 from cinder import SyncCinderClient
