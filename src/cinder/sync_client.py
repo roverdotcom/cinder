@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 import httpx
 
+from .base_client import BaseCinderClient
 from .generated.models import (
     Appeal,
     CreateDecisionSchema,
@@ -18,7 +19,7 @@ from .generated.models import (
 )
 
 
-class SyncCinderClient:
+class SyncCinderClient(BaseCinderClient):
     """Synchronous HTTP client for Cinder API.
 
     This is a synchronous version of CinderClient that uses httpx.Client
@@ -56,20 +57,14 @@ class SyncCinderClient:
             timeout: Request timeout in seconds (default: 30.0)
             **kwargs: Additional arguments passed to httpx.Client
         """
-        self.base_url = base_url.rstrip("/")
-        self.token = token
-
-        # Set up default headers
-        headers = kwargs.pop("headers", {})
-        headers.setdefault("Authorization", f"Bearer {token}")
-        headers.setdefault("Content-Type", "application/json")
+        super().__init__(base_url, token, timeout, **kwargs)
 
         # Create sync HTTP client
         self.client = httpx.Client(
             base_url=self.base_url,
-            headers=headers,
-            timeout=timeout,
-            **kwargs,
+            headers=self.headers,
+            timeout=self.timeout,
+            **self.extra_kwargs,
         )
 
     def __enter__(self) -> "SyncCinderClient":
@@ -123,13 +118,7 @@ class SyncCinderClient:
         Returns:
             Paginated list of reports
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
-        params.update(filters)
-
+        params = self._build_params(limit, offset, **filters)
         response = self.client.get("/api/v1/report/", params=params)
         response.raise_for_status()
         return PagedReport.model_validate(response.json())
@@ -191,14 +180,9 @@ class SyncCinderClient:
         Returns:
             Paginated list of decisions
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
+        params = self._build_params(limit, offset, **extra_params)
         if filters is not None:
             params.update(filters.model_dump(mode="json", exclude_none=True))
-        params.update(extra_params)
 
         response = self.client.get("/api/v1/decisions/", params=params)
         response.raise_for_status()
@@ -240,13 +224,7 @@ class SyncCinderClient:
         Returns:
             Paginated list of appeals
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
-        params.update(filters)
-
+        params = self._build_params(limit, offset, **filters)
         response = self.client.get("/api/v1/appeal/", params=params)
         response.raise_for_status()
         return PagedAppeal.model_validate(response.json())

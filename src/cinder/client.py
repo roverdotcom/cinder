@@ -4,6 +4,7 @@ from typing import Any, Optional
 
 import httpx
 
+from .base_client import BaseCinderClient
 from .generated.models import (
     Appeal,
     CreateDecisionSchema,
@@ -18,7 +19,7 @@ from .generated.models import (
 )
 
 
-class CinderClient:
+class CinderClient(BaseCinderClient):
     """Async HTTP client for Cinder API.
 
     This client uses httpx for async HTTP requests and Pydantic models
@@ -55,20 +56,14 @@ class CinderClient:
             timeout: Request timeout in seconds (default: 30.0)
             **kwargs: Additional arguments passed to httpx.AsyncClient
         """
-        self.base_url = base_url.rstrip("/")
-        self.token = token
-
-        # Set up default headers
-        headers = kwargs.pop("headers", {})
-        headers.setdefault("Authorization", f"Bearer {token}")
-        headers.setdefault("Content-Type", "application/json")
+        super().__init__(base_url, token, timeout, **kwargs)
 
         # Create async HTTP client
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
-            headers=headers,
-            timeout=timeout,
-            **kwargs,
+            headers=self.headers,
+            timeout=self.timeout,
+            **self.extra_kwargs,
         )
 
     async def __aenter__(self) -> "CinderClient":
@@ -122,13 +117,7 @@ class CinderClient:
         Returns:
             Paginated list of reports
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
-        params.update(filters)
-
+        params = self._build_params(limit, offset, **filters)
         response = await self.client.get("/api/v1/report/", params=params)
         response.raise_for_status()
         return PagedReport.model_validate(response.json())
@@ -190,14 +179,9 @@ class CinderClient:
         Returns:
             Paginated list of decisions
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
+        params = self._build_params(limit, offset, **extra_params)
         if filters is not None:
             params.update(filters.model_dump(mode="json", exclude_none=True))
-        params.update(extra_params)
 
         response = await self.client.get("/api/v1/decisions/", params=params)
         response.raise_for_status()
@@ -239,13 +223,7 @@ class CinderClient:
         Returns:
             Paginated list of appeals
         """
-        params = {}
-        if limit is not None:
-            params["limit"] = limit
-        if offset is not None:
-            params["offset"] = offset
-        params.update(filters)
-
+        params = self._build_params(limit, offset, **filters)
         response = await self.client.get("/api/v1/appeal/", params=params)
         response.raise_for_status()
         return PagedAppeal.model_validate(response.json())
