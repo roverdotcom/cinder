@@ -8,14 +8,24 @@ from .generated.models import (
     AppealFilterSchema,
     CreateAppealSchema,
     CreateDecisionSchema,
+    CreateEntitiesAndRelationshipsResponseSchema,
+    CreateEntitiesAndRelationshipsSchema,
     CreateReportSchema,
+    CustomerEvent,
+    CustomerEventEntitySubgraph,
     DecisionFilter,
     DecisionSchema,
+    EntityApiSchema,
+    EventEntity,
+    EventRelationship,
     PagedAppeal,
     PagedDecisionSchema,
     PagedReport,
+    RelationshipApiSchema,
     Report,
     ReportSchema,
+    StatusOkResponse,
+    WorkflowResult,
 )
 
 __all__ = [
@@ -30,12 +40,34 @@ __all__ = [
     "AppealFilterSchema",
     "CreateAppealSchema",
     "CreateDecisionSchema",
+    "CreateEntitiesAndRelationshipsResponseSchema",
+    "CreateEntitiesAndRelationshipsSchema",
     "CreateReportSchema",
+    "CustomerEvent",
+    "CustomerEventEntitySubgraph",
     "DecisionFilter",
     "DecisionSchema",
+    "EntityApiSchema",
+    "EventEntity",
+    "EventRelationship",
     "PagedAppeal",
     "PagedDecisionSchema",
     "PagedReport",
+    "RelationshipApiSchema",
     "Report",
     "ReportSchema",
+    "StatusOkResponse",
+    "WorkflowResult",
 ]
+
+# Optional Django helpers
+try:
+    from .django_helpers import (
+        DjangoSyncCinderClient,
+        get_sync_client_from_settings,
+    )
+
+    __all__.extend(["DjangoSyncCinderClient", "get_sync_client_from_settings"])
+except ImportError:
+    # Django not installed, helpers not available
+    pass

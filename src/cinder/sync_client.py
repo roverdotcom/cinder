@@ -8,14 +8,21 @@ from .base_client import BaseCinderClient
 from .generated.models import (
     Appeal,
     CreateDecisionSchema,
+    CreateEntitiesAndRelationshipsResponseSchema,
+    CreateEntitiesAndRelationshipsSchema,
     CreateReportSchema,
+    CustomerEvent,
     DecisionFilter,
     DecisionSchema,
+    EntityApiSchema,
     PagedAppeal,
     PagedDecisionSchema,
     PagedReport,
+    RelationshipApiSchema,
     Report,
     SchemaResponse,
+    StatusOkResponse,
+    WorkflowResult,
 )
 
 
@@ -256,6 +263,155 @@ class SyncCinderClient(BaseCinderClient):
         response = self.client.get("/api/v1/graph/schema/")
         response.raise_for_status()
         return SchemaResponse.model_validate(response.json())
+
+    # -------------------------------------------------------------------------
+    # Graph (Entities & Relationships)
+    # -------------------------------------------------------------------------
+
+    def upsert(
+        self,
+        entities: Optional[list[EntityApiSchema]] = None,
+        relationships: Optional[list[RelationshipApiSchema]] = None,
+    ) -> CreateEntitiesAndRelationshipsResponseSchema:
+        """Upsert entities and relationships to the Cinder graph.
+
+        This endpoint creates or updates entities and relationships that adhere to
+        your Cinder schema. Entities are identified by their entity_type and id attribute.
+        If an entity with the same type and id already exists, it will be updated.
+
+        Args:
+            entities: List of entities to upsert, each containing entity_type, attributes,
+                     and optional classifier_scores
+            relationships: List of relationships to create between entities
+
+        Returns:
+            Response containing the created/updated entities and relationships
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails (403 Forbidden, 422 Validation Error)
+
+        Example:
+            ```python
+            with client:
+                result = client.upsert(
+                    entities=[
+                        EntityApiSchema(
+                            entity_type="user",
+                            attributes={"id": "user123", "name": "John Doe"}
+                        ),
+                        EntityApiSchema(
+                            entity_type="post",
+                            attributes={"id": "post456", "content": "Hello world"}
+                        )
+                    ],
+                    relationships=[
+                        RelationshipApiSchema(
+                            source_type="user",
+                            source_id="user123",
+                            target_type="post",
+                            target_id="post456",
+                            relationship_type="author_of"
+                        )
+                    ]
+                )
+            ```
+        """
+        payload = CreateEntitiesAndRelationshipsSchema(
+            entities=entities,
+            relationships=relationships,
+        )
+        response = self.client.post(
+            "/api/v1/graph/",
+            json=payload.model_dump(mode="json", exclude_none=True),
+        )
+        response.raise_for_status()
+        return CreateEntitiesAndRelationshipsResponseSchema.model_validate(
+            response.json()
+        )
+
+    # -------------------------------------------------------------------------
+    # Events
+    # -------------------------------------------------------------------------
+
+    def send_event(self, event: CustomerEvent) -> StatusOkResponse:
+        """Send an event to Cinder for asynchronous processing.
+
+        This endpoint enqueues the event to be processed by workflows. Returns immediately
+        without waiting for workflow execution to complete.
+
+        Args:
+            event: Customer event data containing event_name, entity, and optional subgraph
+
+        Returns:
+            StatusOkResponse indicating the event was enqueued (200) or no enabled
+            workflow exists to process it (202)
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails
+
+        Example:
+            ```python
+            with client:
+                event = CustomerEvent(
+                    event_name="user.signup",
+                    entity=EventEntity(
+                        entity_schema="User",
+                        attributes={"id": "123", "email": "user@example.com"}
+                    )
+                )
+                result = client.send_event(event)
+            ```
+        """
+        response = self.client.post(
+            "/api/v2/workflows/event/",
+            json=event.model_dump(mode="json", exclude_none=True),
+        )
+        response.raise_for_status()
+        return StatusOkResponse.model_validate(response.json())
+
+    def send_event_sync(self, event: CustomerEvent) -> WorkflowResult | StatusOkResponse:
+        """Send an event to Cinder for synchronous processing.
+
+        This endpoint processes the event immediately and waits for workflow execution
+        to complete before returning the result. Use this when you need immediate
+        feedback, but be mindful of latency and fault tolerance considerations.
+
+        Args:
+            event: Customer event data containing event_name, entity, and optional subgraph
+
+        Returns:
+            WorkflowResult with workflow execution details (200) or StatusOkResponse
+            if no enabled workflow exists (202)
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails, event is invalid (422),
+                                   or workflow execution exceeds 60s timeout (504)
+
+        Example:
+            ```python
+            with client:
+                event = CustomerEvent(
+                    event_name="content.created",
+                    entity=EventEntity(
+                        entity_schema="Post",
+                        attributes={"id": "456", "content": "Hello world"}
+                    )
+                )
+                result = client.send_event_sync(event)
+                if isinstance(result, WorkflowResult):
+                    print(f"Workflow executed: {result.path}")
+            ```
+        """
+        response = self.client.post(
+            "/api/v2/workflows/event/sync/",
+            json=event.model_dump(mode="json", exclude_none=True),
+        )
+        response.raise_for_status()
+
+        # Check response status to determine which model to use
+        if response.status_code == 202:
+            return StatusOkResponse.model_validate(response.json())
+        return WorkflowResult.model_validate(response.json())
 
     # -------------------------------------------------------------------------
     # Generic request methods

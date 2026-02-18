@@ -1,6 +1,6 @@
 [project]
 name = "cinder"
-version = "0.1.0"
+version = "0.2.0"
 description = "Python async API client wrapper for the Cinder API"
 readme = "README.md"
 requires-python = ">=3.11"
