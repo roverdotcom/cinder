@@ -55,7 +55,7 @@ dependencies = [
 The client can be configured using environment variables:
 
 ```bash
-export CINDER_API_BASE_URL="https://rover-staging.cinderapp.com"
+export CINDER_API_URL="https://rover-staging.cinderapp.com"
 export CINDER_API_TOKEN="XXXXXXXXXXXXXX"
 ```
 
@@ -65,7 +65,7 @@ Add to settings:
 
 ```python
 # Cinder API Configuration
-CINDER_API_BASE_URL = os.environ.get("CINDER_API_BASE_URL")
+CINDER_API_URL = os.environ.get("CINDER_API_URL")
 CINDER_API_TOKEN = os.environ.get("CINDER_API_TOKEN")
 ```
 
@@ -109,7 +109,7 @@ with SyncCinderClient(
 ```python
 from cinder import get_sync_client
 
-# Reads from CINDER_API_BASE_URL and CINDER_API_TOKEN env vars
+# Reads from CINDER_API_URL and CINDER_API_TOKEN env vars
 client = get_sync_client()
 
 with client:

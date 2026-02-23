@@ -460,7 +460,7 @@ def get_client(
 
     Args:
         token: API token. If not provided, reads from CINDER_API_TOKEN env var.
-        base_url: Base URL for the API. If not provided, reads from CINDER_API_BASE_URL env var.
+        base_url: Base URL for the API. If not provided, reads from CINDER_API_URL env var.
         **kwargs: Additional arguments passed to CinderClient constructor.
 
     Returns:
@@ -468,7 +468,7 @@ def get_client(
 
     Raises:
         ValueError: If token is not provided and CINDER_API_TOKEN env var is not set.
-        ValueError: If base_url is not provided and CINDER_API_BASE_URL env var is not set.
+        ValueError: If base_url is not provided and CINDER_API_URL env var is not set.
 
     Example:
         ```python
@@ -493,10 +493,10 @@ def get_client(
             )
 
     if base_url is None:
-        base_url = os.environ.get("CINDER_API_BASE_URL")
+        base_url = os.environ.get("CINDER_API_URL")
         if not base_url:
             raise ValueError(
-                "Base URL must be provided via 'base_url' parameter or CINDER_API_BASE_URL environment variable"
+                "Base URL must be provided via 'base_url' parameter or CINDER_API_URL environment variable"
             )
 
     return CinderClient(
