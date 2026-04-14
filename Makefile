@@ -1,4 +1,4 @@
-.PHONY: regenerate-client clean-client regenerate-models test test-verbose test-coverage test-watch requirements help
+.PHONY: regenerate-client clean-client regenerate-models test test-verbose test-coverage test-watch requirements lint format check help
 
 help:
 	@echo "Available targets:"
@@ -7,6 +7,11 @@ help:
 	@echo "  regenerate-models       - Generate Pydantic models only (1 file, clean names)"
 	@echo "                            → Creates: src/cinder/generated/models.py"
 	@echo "                            → Includes: Just Pydantic models"
+	@echo ""
+	@echo "Code Quality:"
+	@echo "  lint                    - Run ruff linter"
+	@echo "  format                  - Format code with ruff"
+	@echo "  check                   - Run linter and check formatting (CI-friendly)"
 	@echo ""
 	@echo "Testing:"
 	@echo "  test                    - Run all tests"
@@ -38,6 +43,22 @@ clean-models:
 	@echo "Removing generated code..."
 	rm -rf src/cinder/generated
 	@echo "✓ Generated code removed!"
+
+lint:
+	@echo "Running ruff linter..."
+	uv run ruff check src tests
+	@echo "✓ Linting completed!"
+
+format:
+	@echo "Formatting code with ruff..."
+	uv run ruff format src tests
+	@echo "✓ Code formatted!"
+
+check:
+	@echo "Running code quality checks..."
+	uv run ruff check src tests
+	uv run ruff format --check src tests
+	@echo "✓ All checks passed!"
 
 test:
 	@echo "Running tests..."

@@ -1,4 +1,5 @@
 """Tests for the CinderClient."""
+
 import pytest
 import respx
 from httpx import Response
@@ -10,10 +11,7 @@ from cinder.generated.models import SchemaResponse
 @pytest.fixture
 def client():
     """Create a test client instance."""
-    return CinderClient(
-        base_url="https://api.example.com",
-        token="test-token"
-    )
+    return CinderClient(base_url="https://api.example.com", token="test-token")
 
 
 @pytest.fixture
@@ -29,21 +27,21 @@ def sample_schema_response():
                         "slug": "username",
                         "label": "Username",
                         "attribute_type": "string",
-                        "attribute_sub_type": None
+                        "attribute_sub_type": None,
                     },
                     {
                         "slug": "email",
                         "label": "Email",
                         "attribute_type": "string",
-                        "attribute_sub_type": None
-                    }
+                        "attribute_sub_type": None,
+                    },
                 ],
                 "title_attribute": {
                     "slug": "username",
                     "label": "Username",
                     "attribute_type": "string",
-                    "attribute_sub_type": None
-                }
+                    "attribute_sub_type": None,
+                },
             },
             {
                 "slug": "post",
@@ -53,46 +51,38 @@ def sample_schema_response():
                         "slug": "title",
                         "label": "Title",
                         "attribute_type": "string",
-                        "attribute_sub_type": None
+                        "attribute_sub_type": None,
                     },
                     {
                         "slug": "content",
                         "label": "Content",
                         "attribute_type": "text",
-                        "attribute_sub_type": None
-                    }
+                        "attribute_sub_type": None,
+                    },
                 ],
                 "title_attribute": {
                     "slug": "title",
                     "label": "Title",
                     "attribute_type": "string",
-                    "attribute_sub_type": None
-                }
-            }
+                    "attribute_sub_type": None,
+                },
+            },
         ],
         "relationship_schemas": [
             {
                 "slug": "authored",
                 "label": "Authored",
                 "reverse_label": "Authored by",
-                "entity_pairs_by_slug": [
-                    {
-                        "source_slug": "user",
-                        "target_slug": "post"
-                    }
-                ]
+                "entity_pairs_by_slug": [{"source_slug": "user", "target_slug": "post"}],
             }
-        ]
+        ],
     }
 
 
 @pytest.fixture
 def empty_schema_response():
     """Empty schema response data."""
-    return {
-        "entity_schemas": [],
-        "relationship_schemas": []
-    }
+    return {"entity_schemas": [], "relationship_schemas": []}
 
 
 class TestGetGraphSchema:
@@ -222,10 +212,9 @@ class TestGetGraphSchema:
     async def test_get_graph_schema_with_auth_header(self, client):
         """Test that authorization header is sent correctly."""
         route = respx.get("https://api.example.com/api/v1/graph/schema/").mock(
-            return_value=Response(200, json={
-                "entity_schemas": [],
-                "relationship_schemas": []
-            })
+            return_value=Response(
+                200, json={"entity_schemas": [], "relationship_schemas": []}
+            )
         )
 
         async with client:
@@ -239,7 +228,9 @@ class TestGetGraphSchema:
 
     @pytest.mark.asyncio
     @respx.mock
-    async def test_get_graph_schema_attribute_details(self, client, sample_schema_response):
+    async def test_get_graph_schema_attribute_details(
+        self, client, sample_schema_response
+    ):
         """Test detailed attribute schema parsing."""
         respx.get("https://api.example.com/api/v1/graph/schema/").mock(
             return_value=Response(200, json=sample_schema_response)

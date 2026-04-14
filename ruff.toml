@@ -1,0 +1,57 @@
+# ruff.toml
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".github",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+    # Auto-generated models
+    "src/cinder/generated/**",
+]
+include = ["src/**/*.py", "tests/**/*.py"]
+src = ["src", "tests"]
+target-version = "py311"
+line-length = 90
+
+[lint]
+fixable = ["ALL"]
+ignore = ["E203", "E402", "F821"]
+select = ["E", "F", "W", "I", "TID251"]
+
+[lint.isort]
+lines-after-imports = 2
+force-single-line = true
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+extra-standard-library = ["typing_extensions"]
+known-first-party = ["cinder"]
+
+[lint.pycodestyle]
+max-line-length = 120
+
+[lint.per-file-ignores]
+"__init__.py" = [
+    "F401", # We have a pattern of exporting symbols in __init__.py files.
+    "F403", # Wildcards are also sometimes used in __init__.py files.
+]

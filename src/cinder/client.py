@@ -1,30 +1,29 @@
 """Cinder API client wrapper."""
 
 import os
-from typing import Any, Optional
+from typing import Any
+from typing import Optional
 
 import httpx
 
 from .base_client import BaseCinderClient
-from .generated.models import (
-    Appeal,
-    CreateDecisionSchema,
-    CreateEntitiesAndRelationshipsResponseSchema,
-    CreateEntitiesAndRelationshipsSchema,
-    CreateReportSchema,
-    CustomerEvent,
-    DecisionFilter,
-    DecisionSchema,
-    EntityApiSchema,
-    PagedAppeal,
-    PagedDecisionSchema,
-    PagedReport,
-    RelationshipApiSchema,
-    Report,
-    SchemaResponse,
-    StatusOkResponse,
-    WorkflowResult,
-)
+from .generated.models import Appeal
+from .generated.models import CreateDecisionSchema
+from .generated.models import CreateEntitiesAndRelationshipsResponseSchema
+from .generated.models import CreateEntitiesAndRelationshipsSchema
+from .generated.models import CreateReportSchema
+from .generated.models import CustomerEvent
+from .generated.models import DecisionFilter
+from .generated.models import DecisionSchema
+from .generated.models import EntityApiSchema
+from .generated.models import PagedAppeal
+from .generated.models import PagedDecisionSchema
+from .generated.models import PagedReport
+from .generated.models import RelationshipApiSchema
+from .generated.models import Report
+from .generated.models import SchemaResponse
+from .generated.models import StatusOkResponse
+from .generated.models import WorkflowResult
 
 
 class CinderClient(BaseCinderClient):
