@@ -1,5 +1,8 @@
 """Base client with shared functionality."""
-from typing import Any, Dict, Optional
+
+from typing import Any
+from typing import Dict
+from typing import Optional
 
 
 class BaseCinderClient:

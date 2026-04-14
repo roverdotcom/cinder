@@ -169,6 +169,19 @@ cd cinder
 uv sync --frozen
 ```
 
+### Code Quality
+
+```bash
+# Run linter
+make lint
+
+# Format code
+make format
+
+# Run all checks (linting + format check)
+make check
+```
+
 ### Running Tests
 
 ```bash

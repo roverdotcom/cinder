@@ -1,4 +1,5 @@
 """Tests for the SyncCinderClient."""
+
 import pytest
 import respx
 from httpx import Response
@@ -10,10 +11,7 @@ from cinder.generated.models import SchemaResponse
 @pytest.fixture
 def client():
     """Create a test sync client instance."""
-    return SyncCinderClient(
-        base_url="https://api.example.com",
-        token="test-token"
-    )
+    return SyncCinderClient(base_url="https://api.example.com", token="test-token")
 
 
 @pytest.fixture
@@ -29,18 +27,18 @@ def sample_schema_response():
                         "slug": "username",
                         "label": "Username",
                         "attribute_type": "string",
-                        "attribute_sub_type": None
+                        "attribute_sub_type": None,
                     }
                 ],
                 "title_attribute": {
                     "slug": "username",
                     "label": "Username",
                     "attribute_type": "string",
-                    "attribute_sub_type": None
-                }
+                    "attribute_sub_type": None,
+                },
             }
         ],
-        "relationship_schemas": []
+        "relationship_schemas": [],
     }
 
 
@@ -72,10 +70,9 @@ class TestSyncGetGraphSchema:
     def test_get_graph_schema_with_auth_header(self, client):
         """Test that authorization header is sent correctly."""
         route = respx.get("https://api.example.com/api/v1/graph/schema/").mock(
-            return_value=Response(200, json={
-                "entity_schemas": [],
-                "relationship_schemas": []
-            })
+            return_value=Response(
+                200, json={"entity_schemas": [], "relationship_schemas": []}
+            )
         )
 
         with client:
