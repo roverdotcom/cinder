@@ -1,0 +1,11 @@
+name: "CodeQL Config"
+
+# Disable queries that conflict with enterprise policy
+# Enterprise policy requires using approved action tags (e.g., astral-sh/setup-uv@v6)
+# rather than pinned commit hashes, which conflicts with CodeQL's unpinned action check
+query-filters:
+  - exclude:
+      id:
+        - js/actions/actions-not-pinned
+        - javascript/actions/actions-not-pinned-to-hash
+        - actions/actions-not-pinned
