@@ -5,13 +5,11 @@ import respx
 from httpx import Response
 
 from cinder import CinderClient
-from cinder.generated.models import (
-    DecisionSchema,
-    PagedDecisionSchema,
-    PagedReport,
-    Report,
-    SchemaResponse,
-)
+from cinder.generated.models import DecisionSchema
+from cinder.generated.models import PagedDecisionSchema
+from cinder.generated.models import PagedReport
+from cinder.generated.models import Report
+from cinder.generated.models import SchemaResponse
 
 
 @pytest.fixture
