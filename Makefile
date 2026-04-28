@@ -4,9 +4,9 @@ help:
 	@echo "Available targets:"
 	@echo ""
 	@echo "Models Only (datamodel-code-generator):"
-	@echo "  regenerate-models       - Generate Pydantic models only (1 file, clean names)"
-	@echo "                            → Creates: src/cinder/generated/models.py"
-	@echo "                            → Includes: Just Pydantic models"
+	@echo "  regenerate-models       - Generate Pydantic models from both OpenAPI specs"
+	@echo "                            → Creates: src/cinder/generated/models.py (from static/openapi.json)"
+	@echo "                            →          src/cinder/generated/custom_models.py (from static/custom.json)"
 	@echo ""
 	@echo "Code Quality:"
 	@echo "  lint                    - Run ruff linter"
@@ -27,17 +27,23 @@ help:
 	@echo ""
 
 regenerate-models:
-	@echo "Regenerating Pydantic models from openapi.json..."
-	@echo "→ Using datamodel-code-generator (single file with clean names)"
+	@echo "Regenerating Pydantic models from static/openapi.json and static/custom.json..."
+	@echo "→ Using datamodel-code-generator"
 	rm -rf src/cinder/generated
 	mkdir -p src/cinder/generated
 	uv run datamodel-codegen \
-		--input openapi.json \
+		--input static/openapi.json \
 		--output src/cinder/generated/models.py \
 		--output-model-type pydantic_v2.BaseModel \
 		--input-file-type openapi
+	uv run datamodel-codegen \
+		--input static/custom.json \
+		--output src/cinder/generated/custom_models.py \
+		--output-model-type pydantic_v2.BaseModel \
+		--input-file-type openapi
 	@echo "✓ Models regenerated successfully!"
-	@echo "  Generated: src/cinder/generated/models.py (single file)"
+	@echo "  Generated: src/cinder/generated/models.py"
+	@echo "  Generated: src/cinder/generated/custom_models.py"
 
 clean-models:
 	@echo "Removing generated code..."

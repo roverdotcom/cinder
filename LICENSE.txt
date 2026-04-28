@@ -24,7 +24,7 @@ SOFTWARE.
 
 Special Notice:
 
-The file "openapi.json" included in this repository is also licensed under the
-MIT License but is Copyright (c) Cinder.ai. The MIT License terms above apply
-equally to that file, with Cinder.ai as the copyright holder for that specific
+The files under "static/*.json" included in this repository are also licensed
+under the MIT License but is Copyright (c) Cinder.ai. The MIT License terms above
+apply equally to that file, with Cinder.ai as the copyright holder for that specific
 file.
