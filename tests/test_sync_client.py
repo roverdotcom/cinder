@@ -320,9 +320,9 @@ class TestSyncGetDecisionReports:
     @respx.mock
     def test_get_decision_reports_not_found(self, client):
         """Test handling of 404 when decision does not exist."""
-        respx.get(
-            "https://api.example.com/api/v2/decisions/nonexistent/reports/"
-        ).mock(return_value=Response(404, json={"detail": "Not found"}))
+        respx.get("https://api.example.com/api/v2/decisions/nonexistent/reports/").mock(
+            return_value=Response(404, json={"detail": "Not found"})
+        )
 
         with client:
             with pytest.raises(Exception) as exc_info:
