@@ -1,0 +1,818 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Cinder Workflow Response Webhook",
+    "version": "1.0.0",
+    "description": "OpenAPI 3.1 specification for the Workflow V2 response webhook sent when an async workflow invoked via `/api/v2/workflows/event/` completes and the workflow has `Send Webhook Response` configured.\n"
+  },
+  "servers": [],
+  "webhooks": {
+    "workflowResponse": {
+      "post": {
+        "operationId": "workflowResponseWebhook",
+        "summary": "Workflow response webhook",
+        "description": "Sent when an async Workflow V2 run completes. The payload is one of:\n- a success variant with the executed path and workflow actions - an error variant for user-facing workflow validation/execution errors\n",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowResponseWebhook"
+              },
+              "examples": {
+                "success": {
+                  "summary": "Successful workflow completion",
+                  "value": {
+                    "event_id": "0197b085-fa76-7a70-b715-27ecf25be400",
+                    "event_name": "rover.message.created",
+                    "environment": "staging",
+                    "status": "ok",
+                    "result": {
+                      "path": [
+                        "Entry Point",
+                        "Policy Classifier",
+                        "Send to Queue"
+                      ],
+                      "actions": [
+                        {
+                          "type": "send_to_queue",
+                          "entity": {
+                            "entity_schema": "message",
+                            "attributes": {
+                              "id": "msg_123"
+                            }
+                          },
+                          "fan_out": null,
+                          "queue": {
+                            "slug": "rover-default"
+                          },
+                          "reason": "Routed by workflow",
+                          "priority": 10,
+                          "tag_ids": [
+                            "needs-review"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                },
+                "error": {
+                  "summary": "User-facing workflow error",
+                  "value": {
+                    "event_id": "0197b085-fa76-7a70-b715-27ecf25be400",
+                    "event_name": "rover.message.created",
+                    "environment": "staging",
+                    "status": "error",
+                    "result": {
+                      "status": 422,
+                      "detail": "Event payload is incompatible with workflow requirements"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Return any 2xx response to acknowledge receipt."
+          },
+          "204": {
+            "description": "No content acknowledgement."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WorkflowResponseWebhook": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/WorkflowResponseWebhookSuccess"
+          },
+          {
+            "$ref": "#/components/schemas/WorkflowResponseWebhookError"
+          }
+        ],
+        "discriminator": {
+          "propertyName": "status",
+          "mapping": {
+            "ok": "#/components/schemas/WorkflowResponseWebhookSuccess",
+            "error": "#/components/schemas/WorkflowResponseWebhookError"
+          }
+        }
+      },
+      "WorkflowResponseWebhookSuccess": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "event_name",
+          "environment",
+          "status",
+          "result"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "description": "ID of the original event submitted to Cinder."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Name of the original event that triggered the workflow."
+          },
+          "environment": {
+            "type": "string",
+            "description": "Cinder environment that emitted the webhook."
+          },
+          "status": {
+            "type": "string",
+            "const": "ok"
+          },
+          "result": {
+            "$ref": "#/components/schemas/WorkflowResponseWebhookSuccessResult"
+          }
+        }
+      },
+      "WorkflowResponseWebhookSuccessResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "path",
+          "actions"
+        ],
+        "properties": {
+          "path": {
+            "type": "array",
+            "description": "Human-readable workflow node names executed for this run.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "description": "Actions emitted by the workflow, using the same action response schema shape as the synchronous workflow API.\n",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowActionApiResponseUnion"
+            }
+          }
+        }
+      },
+      "WorkflowResponseWebhookError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "event_id",
+          "event_name",
+          "environment",
+          "status",
+          "result"
+        ],
+        "properties": {
+          "event_id": {
+            "type": "string",
+            "description": "ID of the original event submitted to Cinder."
+          },
+          "event_name": {
+            "type": "string",
+            "description": "Name of the original event that triggered the workflow."
+          },
+          "environment": {
+            "type": "string",
+            "description": "Cinder environment that emitted the webhook."
+          },
+          "status": {
+            "type": "string",
+            "const": "error"
+          },
+          "result": {
+            "$ref": "#/components/schemas/WorkflowResponseWebhookErrorResult"
+          }
+        }
+      },
+      "WorkflowResponseWebhookErrorResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "detail"
+        ],
+        "properties": {
+          "status": {
+            "type": "integer",
+            "const": 422,
+            "description": "User-facing workflow error status."
+          },
+          "detail": {
+            "type": "string",
+            "description": "Human-readable description of the workflow error."
+          }
+        }
+      },
+      "WorkflowActionApiResponseUnion": {
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "add_to_content_bank": "#/components/schemas/AddToContentBankApiResponse",
+            "apply_points": "#/components/schemas/ApplyPointsApiResponse",
+            "close_related_jobs": "#/components/schemas/CloseRelatedJobsApiResponse",
+            "create_decision": "#/components/schemas/CreateDecisionApiResponse",
+            "create_predictions": "#/components/schemas/CreatePredictionsApiResponse",
+            "create_report": "#/components/schemas/CreateReportApiResponse",
+            "enrich_entity": "#/components/schemas/EnrichEntityApiResponse",
+            "send_to_queue": "#/components/schemas/SendToQueueApiResponse",
+            "send_user_communication": "#/components/schemas/SendUserCommunicationApiResponse"
+          }
+        },
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/AddToContentBankApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/ApplyPointsApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/CreateDecisionApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/CreatePredictionsApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/CreateReportApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/EnrichEntityApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/SendToQueueApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/CloseRelatedJobsApiResponse"
+          },
+          {
+            "$ref": "#/components/schemas/SendUserCommunicationApiResponse"
+          }
+        ]
+      },
+      "RelationshipDirection": {
+        "type": "string",
+        "enum": [
+          "incoming",
+          "outgoing"
+        ]
+      },
+      "Confidence": {
+        "type": "string",
+        "enum": [
+          "HIGH",
+          "MEDIUM",
+          "LOW"
+        ]
+      },
+      "ActionFanOut": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "The specification for a workflow action to fan out to related entities in the graph.\n",
+        "required": [
+          "entity_schema",
+          "relationship_schema",
+          "direction"
+        ],
+        "properties": {
+          "entity_schema": {
+            "type": "string"
+          },
+          "relationship_schema": {
+            "type": "string"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/RelationshipDirection"
+          }
+        }
+      },
+      "EntityMinimalAttributes": {
+        "type": "object",
+        "description": "Contains the ID attribute of an entity.",
+        "required": [
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "Entity": {
+        "type": "object",
+        "description": "Minimal information about an entity.",
+        "required": [
+          "entity_schema",
+          "attributes"
+        ],
+        "properties": {
+          "entity_schema": {
+            "type": "string"
+          },
+          "attributes": {
+            "description": "The entity attributes. For these action payloads, only the ID is included.",
+            "$ref": "#/components/schemas/EntityMinimalAttributes"
+          }
+        }
+      },
+      "Classifier": {
+        "type": "object",
+        "description": "Basic details of a classifier.",
+        "required": [
+          "slug"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          }
+        }
+      },
+      "Queue": {
+        "type": "object",
+        "description": "Basic details of a queue.",
+        "required": [
+          "slug"
+        ],
+        "properties": {
+          "slug": {
+            "type": "string"
+          }
+        }
+      },
+      "Policy": {
+        "type": "object",
+        "description": "Basic details of a policy.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "Severity": {
+        "type": "object",
+        "description": "Basic details of a severity model.",
+        "required": [
+          "id",
+          "value",
+          "name",
+          "enforcement_duration"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "value": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "enforcement_duration": {
+            "type": "integer"
+          }
+        }
+      },
+      "Prediction": {
+        "type": "object",
+        "description": "A prediction made by a classifier.",
+        "required": [
+          "classifier",
+          "entity",
+          "policy",
+          "is_positive",
+          "confidence"
+        ],
+        "properties": {
+          "classifier": {
+            "$ref": "#/components/schemas/Classifier"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "policy": {
+            "$ref": "#/components/schemas/Policy"
+          },
+          "is_positive": {
+            "type": "boolean"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Confidence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "AddToContentBankApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "content_bank_slug",
+          "keyword_value",
+          "description"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "add_to_content_bank"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "content_bank_slug": {
+            "type": "string"
+          },
+          "keyword_value": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplyPointsApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "fan_out",
+          "points"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "apply_points"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "fan_out": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionFanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "points": {
+            "type": "integer"
+          }
+        }
+      },
+      "CloseRelatedJobsApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "fan_out",
+          "queue_slugs",
+          "tags"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "close_related_jobs"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "fan_out": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionFanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "queue_slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateDecisionApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "fan_out",
+          "policies",
+          "actions",
+          "point_assignments"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "create_decision"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "fan_out": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionFanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "policies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Policy"
+            }
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "point_assignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Severity"
+            }
+          }
+        }
+      },
+      "CreatePredictionsApiResponse": {
+        "type": "object",
+        "required": [
+          "classifier_group",
+          "predictions"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "create_predictions"
+          },
+          "classifier_group": {
+            "type": "string"
+          },
+          "predictions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Prediction"
+            }
+          },
+          "reasoning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "CreateReportApiResponse": {
+        "type": "object",
+        "required": [
+          "reported_entity",
+          "reporter",
+          "reasoning",
+          "report_metadata",
+          "reported_attribute_slugs"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "create_report"
+          },
+          "reported_entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "reporter": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Entity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reasoning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "report_metadata": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": true
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reported_attribute_slugs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EnrichEntityApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "enriched_attributes"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "enrich_entity"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "enriched_attributes": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "integer"
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  }
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "boolean"
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              ]
+            }
+          }
+        }
+      },
+      "SendToQueueApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "fan_out",
+          "queue",
+          "reason"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "send_to_queue"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "fan_out": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionFanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "queue": {
+            "$ref": "#/components/schemas/Queue"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "priority": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tag_ids": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "SendUserCommunicationApiResponse": {
+        "type": "object",
+        "required": [
+          "entity",
+          "fan_out",
+          "subject",
+          "message"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "send_user_communication"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/Entity"
+          },
+          "fan_out": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ActionFanOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subject": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -195,6 +195,22 @@ class SyncCinderClient(BaseCinderClient):
         response.raise_for_status()
         return PagedDecisionSchema.model_validate(response.json())
 
+    def get_decision_reports(self, decision_id: str) -> list[Report]:
+        """Get all reports associated with a decision.
+
+        Args:
+            decision_id: The decision ID
+
+        Returns:
+            List of reports that led to the decision
+
+        Raises:
+            httpx.HTTPStatusError: If the request fails or decision not found
+        """
+        response = self.client.get(f"/api/v2/decisions/{decision_id}/reports/")
+        response.raise_for_status()
+        return [Report.model_validate(item) for item in response.json()]
+
     # -------------------------------------------------------------------------
     # Appeals
     # -------------------------------------------------------------------------
